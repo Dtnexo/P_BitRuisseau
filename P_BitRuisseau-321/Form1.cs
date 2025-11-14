@@ -12,6 +12,7 @@ namespace P_BitRuisseau_321
         public Form1()
         {
             InitializeComponent();
+            List<FileName> files = new List<FileName>();
         }
 
         private void fileNetwork_Click(object sender, EventArgs e)
@@ -22,6 +23,12 @@ namespace P_BitRuisseau_321
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
 
+        }
+
+        public FileName  allFileName (int x , string FileName)
+        {
+            var file = new FileName(this, x, FileName);
+            return file;
         }
 
         private void ImportFile_Click(object sender, EventArgs e)
@@ -41,7 +48,7 @@ namespace P_BitRuisseau_321
                 string destPath = Path.Combine(folder, Path.GetFileName(sourcePath));
 
                 System.IO.File.Copy(sourcePath, destPath, true);
-                
+
                 Song song = LoadSongWithTagLib(destPath);
 
                 mySongsList.Add(song);
@@ -50,7 +57,10 @@ namespace P_BitRuisseau_321
             }
         }
 
+        public void LoadTagMusic()
+        {
 
+        }
 
         public Song LoadSongWithTagLib(string filePath)
         {
@@ -70,6 +80,9 @@ namespace P_BitRuisseau_321
             return s;
         }
 
+        private void fileName_Click(object sender, EventArgs e)
+        {
 
+        }
     }
 }
