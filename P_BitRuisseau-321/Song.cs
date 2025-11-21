@@ -1,4 +1,5 @@
-﻿using P_BitRuisseau_321;
+﻿using BitRuisseau;
+using P_BitRuisseau_321;
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -12,12 +13,15 @@ using System.Security.Cryptography;
         public int Size { get; set; }
         public string[] Featuring { get; set; }
         public string Hash { get; private set; }
+        public string? Description { get; set; }
+        public string FileName { get; set; }
+        public string Extension { get; set; }   
 
-        // Constructeur appelé après lecture
-        public Song(string filePath)
+    public Song(string filePath)
         {
-            Size = (int)new FileInfo(filePath).Length;
+            Size = (int)new FileInfo(filePath).Length / 1024 / 1024;
             Hash = ComputeHash(filePath);
+            FileName = (string)new FileInfo(filePath).Name;
         }
 
         private string ComputeHash(string filePath)
