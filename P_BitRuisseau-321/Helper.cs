@@ -6,10 +6,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 
-namespace P_BitRuisseau_321
+namespace BitRuisseau
 {
-    public class Helper
+    public static class Helper
     {
+        /// <summary>
+        /// Hash the content of a file
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public static string HashFile(string path)
         {
             using (SHA256 sha256Hash = SHA256.Create())

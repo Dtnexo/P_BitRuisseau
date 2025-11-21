@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace P_BitRuisseau_321
+namespace BitRuisseau
 {
     public interface ISong
     {
@@ -18,6 +18,10 @@ namespace P_BitRuisseau_321
         /// </summary>
         public string Artist { get; set; }
 
+        /// <summary>
+        /// The description of the song
+        /// </summary>
+        public string Description { get; set; }
         /// <summary>
         /// The song release date
         /// </summary>
@@ -42,5 +46,10 @@ namespace P_BitRuisseau_321
         /// The hash of the file content
         /// </summary>
         public string Hash { get; }
+
+        /// <summary>
+        /// The file format of the song
+        /// </summary>
+        public string Extension { get; }
     }
 }
