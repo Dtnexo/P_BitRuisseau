@@ -103,6 +103,15 @@ namespace P_BitRuisseau_321
             };
             return s;
         }
+        private void HandleUpdateDescription(MusicCard card)
+        {
+            // ouvrir une InputBox (MessageBox custom)
+            string newDescription = Microsoft.VisualBasic.Interaction.InputBox(
+                "Nouvelle description :",
+                "Modifier la description",
+                card.BoundSong.Description
+            );
+        }
         private void btnUpdateDes_Click(object sender, EventArgs e)
         {
 
