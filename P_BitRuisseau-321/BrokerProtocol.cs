@@ -36,8 +36,6 @@ namespace BitRuisseau
             }
         }
 
-       
-
         public void SayOnline()
         {
             var message = new Message
@@ -48,5 +46,24 @@ namespace BitRuisseau
             SendMessageToBroker(message);
         }
 
+        public List<ISong> AskCatalog(string name)
+        {
+            var request = new Message
+            {
+                Sender = MyName,
+                Recipient = name,
+                Action = "ASK_CATALOG"
+            };
+
+            SendMessageToBroker(request);
+            return new List<ISong>();
+        }
+
+        
+
+        
     }
 }
+
+
+
