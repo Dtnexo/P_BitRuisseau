@@ -32,10 +32,10 @@ namespace P_BitRuisseau_321
         {
             fileLocal = new Label();
             fileNetwork = new Label();
-            checkBox1 = new CheckBox();
-            checkBox2 = new CheckBox();
+            checkLocalFile = new CheckBox();
+            checkNetworkFile = new CheckBox();
             ImportFile = new Button();
-            button2 = new Button();
+            RequestFileNetwork = new Button();
             panelLocal = new Panel();
             panel1 = new Panel();
             SuspendLayout();
@@ -61,24 +61,24 @@ namespace P_BitRuisseau_321
             // 
             // checkBox1
             // 
-            checkBox1.AutoSize = true;
-            checkBox1.Location = new Point(188, 88);
-            checkBox1.Name = "checkBox1";
-            checkBox1.Size = new Size(78, 19);
-            checkBox1.TabIndex = 3;
-            checkBox1.Text = "Local  File";
-            checkBox1.UseVisualStyleBackColor = true;
-            checkBox1.CheckedChanged += checkBox1_CheckedChanged;
+            checkLocalFile.AutoSize = true;
+            checkLocalFile.Location = new Point(188, 88);
+            checkLocalFile.Name = "checkBox1";
+            checkLocalFile.Size = new Size(78, 19);
+            checkLocalFile.TabIndex = 3;
+            checkLocalFile.Text = "Local  File";
+            checkLocalFile.UseVisualStyleBackColor = true;
+            checkLocalFile.CheckedChanged += checkLocalFile_CheckedChanged;
             // 
             // checkBox2
             // 
-            checkBox2.AutoSize = true;
-            checkBox2.Location = new Point(700, 88);
-            checkBox2.Name = "checkBox2";
-            checkBox2.Size = new Size(95, 19);
-            checkBox2.TabIndex = 4;
-            checkBox2.Text = "Network  File";
-            checkBox2.UseVisualStyleBackColor = true;
+            checkNetworkFile.AutoSize = true;
+            checkNetworkFile.Location = new Point(700, 88);
+            checkNetworkFile.Name = "checkBox2";
+            checkNetworkFile.Size = new Size(95, 19);
+            checkNetworkFile.TabIndex = 4;
+            checkNetworkFile.Text = "Network  File";
+            checkNetworkFile.UseVisualStyleBackColor = true;
             // 
             // ImportFile
             // 
@@ -92,12 +92,12 @@ namespace P_BitRuisseau_321
             // 
             // button2
             // 
-            button2.Location = new Point(671, 48);
-            button2.Name = "button2";
-            button2.Size = new Size(145, 23);
-            button2.TabIndex = 6;
-            button2.Text = "Request File Network";
-            button2.UseVisualStyleBackColor = true;
+            RequestFileNetwork.Location = new Point(671, 48);
+            RequestFileNetwork.Name = "button2";
+            RequestFileNetwork.Size = new Size(145, 23);
+            RequestFileNetwork.TabIndex = 6;
+            RequestFileNetwork.Text = "Request File Network";
+            RequestFileNetwork.UseVisualStyleBackColor = true;
             // 
             // panelLocal
             // 
@@ -123,10 +123,10 @@ namespace P_BitRuisseau_321
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1005, 530);
             Controls.Add(panel1);
-            Controls.Add(checkBox2);
+            Controls.Add(checkNetworkFile);
             Controls.Add(panelLocal);
-            Controls.Add(checkBox1);
-            Controls.Add(button2);
+            Controls.Add(checkLocalFile);
+            Controls.Add(RequestFileNetwork);
             Controls.Add(ImportFile);
             Controls.Add(fileNetwork);
             Controls.Add(fileLocal);
@@ -140,10 +140,10 @@ namespace P_BitRuisseau_321
 
         private Label fileLocal;
         private Label fileNetwork;
-        private CheckBox checkBox1;
-        private CheckBox checkBox2;
+        private CheckBox checkLocalFile;
+        private CheckBox checkNetworkFile;
         private Button ImportFile;
-        private Button button2;
+        private Button RequestFileNetwork;
         private Panel panelLocal;
         private Panel panel1;
     }

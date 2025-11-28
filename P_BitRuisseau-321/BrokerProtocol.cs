@@ -1,0 +1,163 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Net.Sockets;
+using System.Net;
+using System.IO;
+
+namespace BitRuisseau
+{
+    public class BrokerProtocol : IProtocol
+    {
+        private const string BrokerAddress = "127.0.0.1";
+        private const int BrokerPort = 5000;
+        private readonly string MyName = Environment.MachineName;
+
+        private void SendMessageToBroker(Message message)
+        {
+            try
+            {
+                using (var client = new TcpClient(BrokerAddress, BrokerPort))
+                using (var stream = client.GetStream())
+                {
+                    string jsonMessage = JsonSerializer.Serialize(message);
+                    byte[] data = Encoding.UTF8.GetBytes(jsonMessage);
+
+                    byte[] lengthPrefix = BitConverter.GetBytes(data.Length);
+                    stream.Write(lengthPrefix, 0, lengthPrefix.Length);
+                    stream.Write(data, 0, data.Length);
+                }
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine($"Erreur de connexion au broker: {ex.Message}");
+            }
+        }
+
+        private Message ReceiveResponseFromBroker(TcpClient client)
+        {
+            using (var stream = client.GetStream())
+            {
+                byte[] lengthBuffer = new byte[4];
+                int bytesRead = stream.Read(lengthBuffer, 0, lengthBuffer.Length);
+                if (bytesRead == 0) return null;
+
+                int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
+
+                byte[] dataBuffer = new byte[messageLength];
+                int totalBytesRead = 0;
+                while (totalBytesRead < messageLength)
+                {
+                    bytesRead = stream.Read(dataBuffer, totalBytesRead, messageLength - totalBytesRead);
+                    if (bytesRead == 0) break;
+                    totalBytesRead += bytesRead;
+                }
+
+                string jsonResponse = Encoding.UTF8.GetString(dataBuffer, 0, totalBytesRead);
+                return JsonSerializer.Deserialize<Message>(jsonResponse);
+            }
+        }
+
+        public string[] GetOnlineMediatheque()
+        {
+            var request = new Message
+            {
+                Sender = MyName,
+                Action = "GET_ONLINE"
+            };
+
+            return new string[] { "Mediatheque_A:192.168.1.10", "Mediatheque_B:10.0.0.5" };
+        }
+
+        public void SayOnline()
+        {
+            var message = new Message
+            {
+                Sender = MyName,
+                Action = "IM_ONLINE"
+            };
+            SendMessageToBroker(message);
+        }
+
+        public List<ISong> AskCatalog(string name)
+        {
+            var request = new Message
+            {
+                Sender = MyName,
+                Recipient = name,
+                Action = "ASK_CATALOG"
+            };
+
+            SendMessageToBroker(request);
+            return new List<ISong>();
+        }
+
+        public void SendCatalog(string name)
+        {
+            var localCatalog = new List<ISong>();
+
+            var message = new Message
+            {
+                Sender = MyName,
+                Recipient = name,
+                Action = "SEND_CATALOG",
+                SongList = localCatalog
+            };
+            SendMessageToBroker(message);
+        }
+
+        public void AskMedia(ISong song, string name, int startByte, int endByte)
+        {
+            var message = new Message
+            {
+                Sender = MyName,
+                Recipient = name,
+                Action = "ASK_MEDIA",
+                Hash = song.Hash,
+                StartByte = startByte,
+                EndByte = endByte
+            };
+            SendMessageToBroker(message);
+        }
+
+        public void SendMedia(ISong song, string name, int startByte, int endByte)
+        {
+            if (!(song is Song localSong))
+            {
+                Console.WriteLine("Erreur: L'objet Song local n'est pas disponible pour l'envoi.");
+                return;
+            }
+
+            string calculatedHash = Helper.HashFile(localSong.FilePath);
+            if (calculatedHash != localSong.Hash)
+            {
+                Console.WriteLine("Erreur: Le Hash du fichier ne correspond pas aux métadonnées.");
+                return;
+            }
+
+            byte[] mediaBytes;
+            int length = endByte - startByte + 1;
+
+            using (var stream = new FileStream(localSong.FilePath, FileMode.Open, FileAccess.Read))
+            {
+                mediaBytes = new byte[length];
+                stream.Seek(startByte, SeekOrigin.Begin);
+                stream.Read(mediaBytes, 0, length);
+            }
+
+            var message = new Message
+            {
+                Sender = MyName,
+                Recipient = name,
+                Action = "SEND_MEDIA",
+                Hash = song.Hash,
+                StartByte = startByte,
+                EndByte = endByte,
+                SongData = Convert.ToBase64String(mediaBytes)
+            };
+            SendMessageToBroker(message);
+        }
+    }
+}
