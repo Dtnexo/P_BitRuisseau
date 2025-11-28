@@ -15,10 +15,12 @@ using System.Security.Cryptography;
         public string Hash { get; private set; }
         public string? Description { get; set; }
         public string FileName { get; set; }
-        public string Extension { get; set; }   
+        public string Extension { get; set; }
+        public string FilePath { get; }
 
     public Song(string filePath)
         {
+            FilePath = filePath;
             Size = (int)new FileInfo(filePath).Length / 1024 / 1024;
             Hash = ComputeHash(filePath);
             FileName = (string)new FileInfo(filePath).Name;

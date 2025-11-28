@@ -33,6 +33,7 @@ namespace P_BitRuisseau_321
             MusicCard card = new MusicCard();
             card.SetData(song);
             card.Location = new Point(10, y);
+            card.UpdateDescriptionClicked += HandleUpdateDescription;
 
             panelLocal.Controls.Add(card);
             card.BringToFront();
@@ -105,12 +106,40 @@ namespace P_BitRuisseau_321
         }
         private void HandleUpdateDescription(MusicCard card)
         {
-            // ouvrir une InputBox (MessageBox custom)
+
+            string originalDescription = card.BoundSong.Description ?? "";
             string newDescription = Microsoft.VisualBasic.Interaction.InputBox(
                 "Nouvelle description :",
                 "Modifier la description",
-                card.BoundSong.Description
+                originalDescription
             );
+            bool isLikelyCancellation = (newDescription == "" && originalDescription != "");
+
+
+            if (newDescription != originalDescription && !isLikelyCancellation)
+            {      
+                try
+                {
+                    var tagFile = TagLib.File.Create(card.BoundSong.FilePath);
+
+                    tagFile.Tag.Description = newDescription;
+
+                    tagFile.Save();
+
+                    card.BoundSong.Description = newDescription;
+
+                    card.SetData(card.BoundSong);
+
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Erreur lors de la mise à jour : {ex.Message}", "Erreur de Sauvegarde", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            else
+            {
+                return;
+            }
         }
         private void btnUpdateDes_Click(object sender, EventArgs e)
         {

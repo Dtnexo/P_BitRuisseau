@@ -16,7 +16,8 @@ namespace P_BitRuisseau_321
         private Label lblFileName;
         private Label lblFileSize;
         private Button btnUpdateDes;
-
+        public Song BoundSong { get; private set; }
+        public event Action<MusicCard> UpdateDescriptionClicked;
         public MusicCard()
         {
             this.Size = new Size(360, 150);
@@ -67,6 +68,7 @@ namespace P_BitRuisseau_321
                 Location = new Point(265, 40),
                 Size = new Size(70, 25)
             };
+            btnUpdateDes.Click += BtnUpdateDes_Click;
             lblFeat = new Label()
             {
                 Font = new Font("Segoe UI", 8),
@@ -107,8 +109,14 @@ namespace P_BitRuisseau_321
             this.Controls.Add(lblFileSize);
         }
 
+
+        private void BtnUpdateDes_Click(object sender, EventArgs e)
+        {
+            UpdateDescriptionClicked?.Invoke(this);
+        }
         public void SetData(Song song)
         {
+            this.BoundSong = song;
             lblTitle.Text = song.Title;
             lblArtist.Text = song.Artist;
             lblDuration.Text = $"Durée: {song.Duration.Minutes}:{song.Duration.Seconds:D2}";
