@@ -35,7 +35,9 @@ namespace BitRuisseau
                 Console.WriteLine($"Erreur de connexion au broker: {ex.Message}");
             }
         }
+
        
+
         public void SayOnline()
         {
             var message = new Message
@@ -48,6 +50,3 @@ namespace BitRuisseau
 
     }
 }
-
-
-
