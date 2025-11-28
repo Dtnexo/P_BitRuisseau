@@ -10,11 +10,13 @@ namespace P_BitRuisseau_321
     public partial class Form1 : Form
     {
         private List<Song> mySongsList = new List<Song>();
+        private readonly BrokerProtocol protocol;
         public Form1()
         {
             InitializeComponent();
+            protocol = new BrokerProtocol();
             LoadTagMusic();
-
+            protocol.SayOnline();
 
         }
 
@@ -23,9 +25,10 @@ namespace P_BitRuisseau_321
 
         }
 
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        private void checkLocalFile_CheckedChanged(object sender, EventArgs e)
         {
-
+            CheckBox cb = (CheckBox)sender;
+            panelLocal.Visible = cb.Checked;
         }
 
         public MusicCard CreateMusicCard(int y, Song song)
