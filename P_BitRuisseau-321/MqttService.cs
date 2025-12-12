@@ -74,4 +74,121 @@ namespace BitRuisseau
             }
         }
 
+        private async Task SendMessage(Message msg)
+        {
+            if (client.IsConnected())
+            {
+                string json = JsonSerializer.Serialize(msg);
+                await client.PublishAsync(Config.TOPIC, json).ConfigureAwait(false);
+            }
+        }
+
+        // IProtocol Implementation
+
+        public string[] GetOnlineMediatheque()
+        {
+            var request = new Message
+            {
+                Sender = MyName,
+                Action = "askOnline",
+                Recipient = "0.0.0.0"
+            };
+            SendMessage(request).Wait(); 
+            return new string[] { }; 
+        }
+
+        public void SayOnline()
+        {
+            var message = new Message
+            {
+                Sender = MyName,
+                Action = "online",
+                Recipient = "0.0.0.0"
+            };
+            SendMessage(message).FireAndForgetSafeAsync();
+        }
+
+        public List<ISong> AskCatalog(string name)
+        {
+            var request = new Message
+            {
+                Sender = MyName,
+                Recipient = name,
+                Action = "askCatalog" 
+            };
+            SendMessage(request).FireAndForgetSafeAsync();
+            return new List<ISong>();
+        }
+
+        public void SendCatalog(string name)
+        {
+             var message = new Message
+             {
+                 Sender = MyName,
+                 Recipient = name,
+                 Action = "sendCatalog",
+                 SongList = P_BitRuisseau_321.Program.MySongs
+             };
+             SendMessage(message).FireAndForgetSafeAsync();
+        }
+
+        public void AskMedia(ISong song, string name, int startByte, int endByte)
+        {
+            var message = new Message
+            {
+                Sender = MyName,
+                Recipient = name,
+                Action = "askMedia",
+                Hash = song.Hash,
+                StartByte = startByte,
+                EndByte = endByte
+            };
+            SendMessage(message).FireAndForgetSafeAsync();
+        }
+
+        public void SendMedia(ISong song, string name, int startByte, int endByte)
+        {
+             if (song is Song localSong)
+            {
+                try {
+                    using (var fs = new FileStream(localSong.FilePath, FileMode.Open, FileAccess.Read))
+                    {
+                        int length = endByte - startByte + 1;
+                        byte[] buffer = new byte[length];
+                        fs.Seek(startByte, SeekOrigin.Begin);
+                        fs.Read(buffer, 0, length);
+                        
+                        var message = new Message
+                        {
+                            Sender = MyName,
+                            Recipient = name,
+                            Action = "sendMedia",
+                            Hash = song.Hash,
+                            StartByte = startByte,
+                            EndByte = endByte,
+                            SongData = Convert.ToBase64String(buffer)
+                        };
+                        SendMessage(message).FireAndForgetSafeAsync();
+                    }
+                } catch(Exception ex) {
+                    Trace.WriteLine("Error sending media: " + ex.Message);
+                }
+            }
+        }
+    }
+    
+    public static class TaskExtensions
+    {
+        public static async void FireAndForgetSafeAsync(this Task task)
+        {
+            try
+            {
+                await task;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(ex);
+            }
+        }
+    }
 }
