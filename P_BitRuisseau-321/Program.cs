@@ -2,6 +2,9 @@ namespace P_BitRuisseau_321
 {
     internal static class Program
     {
+        public static Dictionary<string, List<Song>> mediathequeSongs = new Dictionary<string, List<Song>>();
+        public static List<Song> MySongs = new List<Song>();
+
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>

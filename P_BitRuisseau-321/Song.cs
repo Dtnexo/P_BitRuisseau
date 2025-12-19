@@ -12,18 +12,23 @@ using System.Security.Cryptography;
         public TimeSpan Duration { get; set; }
         public int Size { get; set; }
         public string[] Featuring { get; set; }
-        public string Hash { get; private set; }
+        public string Hash { get; set; }
         public string? Description { get; set; }
         public string FileName { get; set; }
         public string Extension { get; set; }
-        public string FilePath { get; }
+        public string FilePath { get; set; }
 
-    public Song(string filePath)
+        public Song() { }
+
+        public Song(string filePath)
         {
             FilePath = filePath;
-            Size = (int)new FileInfo(filePath).Length / 1024 / 1024;
-            Hash = ComputeHash(filePath);
-            FileName = (string)new FileInfo(filePath).Name;
+            if (File.Exists(filePath))
+            {
+                Size = (int)new FileInfo(filePath).Length / 1024 / 1024;
+                Hash = ComputeHash(filePath);
+                FileName = (string)new FileInfo(filePath).Name;
+            }
         }
 
         private string ComputeHash(string filePath)

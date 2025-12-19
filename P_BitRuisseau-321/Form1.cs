@@ -1,28 +1,113 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using TagLib;
-using System.Linq;
 using BitRuisseau;
 
 namespace P_BitRuisseau_321
 {
     public partial class Form1 : Form
     {
-        private List<Song> mySongsList = new List<Song>();
-        private readonly BrokerProtocol protocol;
+
+        private readonly IProtocol protocol; 
+
         public Form1()
         {
             InitializeComponent();
-            protocol = new BrokerProtocol();
+            protocol = new MqttService(); 
             LoadTagMusic();
             protocol.SayOnline();
-
+            protocol.GetOnlineMediatheque();
         }
 
         private void fileNetwork_Click(object sender, EventArgs e)
         {
+             RefreshNetworkUsers();
+        }
 
+        private void RequestFileNetwork_Click(object sender, EventArgs e)
+        {
+             protocol.GetOnlineMediatheque(); 
+             RefreshNetworkUsers();
+        }
+
+        private void RefreshNetworkUsers()
+        {
+            
+             cbUsers.Items.Clear();
+             foreach (var ownerName in Program.mediathequeSongs.Keys)
+             {
+                 cbUsers.Items.Add(ownerName);
+             }
+             
+             panel1.Controls.Clear();
+             int y = 0;
+             foreach (var ownerName in Program.mediathequeSongs.Keys)
+             {
+                 var userCard = new MediathequeCard(ownerName);
+                 userCard.Location = new Point(10, y);
+                 userCard.AskCatalogOnClicked += OnMediathequeClicked;
+                 panel1.Controls.Add(userCard);
+                 y += 60;
+             }
+        }
+
+        private void cbUsers_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cbUsers.SelectedItem != null)
+            {
+                string ownerName = cbUsers.SelectedItem.ToString();
+                OnMediathequeClicked(ownerName);
+            }
+        }
+
+        private void checkNetworkFile_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox cb = (CheckBox)sender;
+            panel1.Visible = cb.Checked;
+            if (cb.Checked) RefreshNetworkUsers();
+        }
+
+        private void OnMediathequeClicked(string ownerName)
+        {
+            
+            panel1.Controls.Clear();
+            
+            protocol.AskCatalog(ownerName);
+
+            if (Program.mediathequeSongs.ContainsKey(ownerName))
+            {
+                var songs = Program.mediathequeSongs[ownerName];
+                int index = 0;
+                foreach(var s in songs)
+                {
+                     var card = CreateMusicCard(index * 170, s);
+                     card.SetDownloadVisible(true);
+                     card.Tag = ownerName;
+                     card.DownloadClicked += HandleDownload;
+                     panel1.Controls.Add(card); // Explicitly add to panel1
+                     index++;
+                }
+            }
+        }
+        private void HandleDownload(MusicCard card)
+        {
+            string owner = card.Tag as string;
+            if (string.IsNullOrEmpty(owner)) return;
+            
+            int bytes = card.BoundSong.Size * 1024 * 1024;
+            if (bytes == 0) bytes = 10 * 1024 * 1024; 
+            
+            protocol.AskMedia(card.BoundSong, owner, 0, bytes);
+            MessageBox.Show($"Demande envoyÃ©e Ã  {owner} pour {card.BoundSong.Title}!");
         }
 
         private void checkLocalFile_CheckedChanged(object sender, EventArgs e)
@@ -38,8 +123,8 @@ namespace P_BitRuisseau_321
             card.Location = new Point(10, y);
             card.UpdateDescriptionClicked += HandleUpdateDescription;
 
-            panelLocal.Controls.Add(card);
-            card.BringToFront();
+            // Removed hardcoded panelLocal.Controls.Add(card);
+            // card.BringToFront(); // Caller should handle this if needed
             return card;
         }
 
@@ -63,7 +148,7 @@ namespace P_BitRuisseau_321
 
                 Song song = LoadSongWithTagLib(destPath);
 
-                mySongsList.Add(song);
+
 
                 LoadTagMusic();
 
@@ -72,7 +157,8 @@ namespace P_BitRuisseau_321
 
         public void LoadTagMusic()
         {
-            panelLocal.Controls.Clear(); // nettoyage du panel pour éviter les doublons
+            panelLocal.Controls.Clear();
+            Program.MySongs.Clear(); 
 
             string folder = Path.Combine(Application.StartupPath, "fileMp3");
             if (!Directory.Exists(folder)) return;
@@ -83,8 +169,10 @@ namespace P_BitRuisseau_321
             files.ToList().ForEach(file =>
             {
                 Song song = LoadSongWithTagLib(file);
+                Program.MySongs.Add(song);
 
-                CreateMusicCard(index * 170, song);
+                var card = CreateMusicCard(index * 170, song);
+                panelLocal.Controls.Add(card); // Explicitly add to panelLocal
 
                 index++;
             });
@@ -120,7 +208,7 @@ namespace P_BitRuisseau_321
 
 
             if (newDescription != originalDescription && !isLikelyCancellation)
-            {      
+            {
                 try
                 {
                     var tagFile = TagLib.File.Create(card.BoundSong.FilePath);
@@ -136,7 +224,7 @@ namespace P_BitRuisseau_321
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Erreur lors de la mise à jour : {ex.Message}", "Erreur de Sauvegarde", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Erreur lors de la mise Ã  jour : {ex.Message}", "Erreur de Sauvegarde", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             else

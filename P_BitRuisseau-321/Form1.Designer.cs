@@ -38,6 +38,7 @@ namespace P_BitRuisseau_321
             RequestFileNetwork = new Button();
             panelLocal = new Panel();
             panel1 = new Panel();
+            cbUsers = new ComboBox();
             SuspendLayout();
             // 
             // fileLocal
@@ -52,33 +53,34 @@ namespace P_BitRuisseau_321
             // fileNetwork
             // 
             fileNetwork.AutoSize = true;
-            fileNetwork.Location = new Point(712, 18);
+            fileNetwork.Location = new Point(709, 9);
             fileNetwork.Name = "fileNetwork";
             fileNetwork.Size = new Size(73, 15);
             fileNetwork.TabIndex = 1;
             fileNetwork.Text = "Network File";
             fileNetwork.Click += fileNetwork_Click;
             // 
-            // checkBox1
+            // checkLocalFile
             // 
             checkLocalFile.AutoSize = true;
             checkLocalFile.Location = new Point(188, 88);
-            checkLocalFile.Name = "checkBox1";
+            checkLocalFile.Name = "checkLocalFile";
             checkLocalFile.Size = new Size(78, 19);
             checkLocalFile.TabIndex = 3;
             checkLocalFile.Text = "Local  File";
             checkLocalFile.UseVisualStyleBackColor = true;
             checkLocalFile.CheckedChanged += checkLocalFile_CheckedChanged;
             // 
-            // checkBox2
+            // checkNetworkFile
             // 
             checkNetworkFile.AutoSize = true;
             checkNetworkFile.Location = new Point(700, 88);
-            checkNetworkFile.Name = "checkBox2";
+            checkNetworkFile.Name = "checkNetworkFile";
             checkNetworkFile.Size = new Size(95, 19);
             checkNetworkFile.TabIndex = 4;
             checkNetworkFile.Text = "Network  File";
             checkNetworkFile.UseVisualStyleBackColor = true;
+            checkNetworkFile.CheckedChanged += checkNetworkFile_CheckedChanged;
             // 
             // ImportFile
             // 
@@ -90,14 +92,15 @@ namespace P_BitRuisseau_321
             ImportFile.UseVisualStyleBackColor = true;
             ImportFile.Click += ImportFile_Click;
             // 
-            // button2
+            // RequestFileNetwork
             // 
-            RequestFileNetwork.Location = new Point(671, 48);
-            RequestFileNetwork.Name = "button2";
+            RequestFileNetwork.Location = new Point(671, 27);
+            RequestFileNetwork.Name = "RequestFileNetwork";
             RequestFileNetwork.Size = new Size(145, 23);
             RequestFileNetwork.TabIndex = 6;
             RequestFileNetwork.Text = "Request File Network";
             RequestFileNetwork.UseVisualStyleBackColor = true;
+            RequestFileNetwork.Click += RequestFileNetwork_Click;
             // 
             // panelLocal
             // 
@@ -117,11 +120,21 @@ namespace P_BitRuisseau_321
             panel1.Size = new Size(420, 393);
             panel1.TabIndex = 6;
             // 
+            // cbUsers
+            // 
+            cbUsers.FormattingEnabled = true;
+            cbUsers.Location = new Point(671, 62);
+            cbUsers.Name = "cbUsers";
+            cbUsers.Size = new Size(145, 23);
+            cbUsers.TabIndex = 7;
+            cbUsers.SelectedIndexChanged += cbUsers_SelectedIndexChanged;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1005, 530);
+            Controls.Add(cbUsers);
             Controls.Add(panel1);
             Controls.Add(checkNetworkFile);
             Controls.Add(panelLocal);
@@ -146,5 +159,6 @@ namespace P_BitRuisseau_321
         private Button RequestFileNetwork;
         private Panel panelLocal;
         private Panel panel1;
+        private ComboBox cbUsers;
     }
 }
