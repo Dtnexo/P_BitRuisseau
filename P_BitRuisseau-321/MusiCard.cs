@@ -16,8 +16,10 @@ namespace P_BitRuisseau_321
         private Label lblFileName;
         private Label lblFileSize;
         private Button btnUpdateDes;
+        private Button btnDownload;
         public Song BoundSong { get; private set; }
         public event Action<MusicCard> UpdateDescriptionClicked;
+        public event Action<MusicCard> DownloadClicked;
         public MusicCard()
         {
             this.Size = new Size(360, 150);
@@ -97,16 +99,33 @@ namespace P_BitRuisseau_321
                 AutoSize = true
             };
 
+            btnDownload = new Button()
+            {
+                Text = "Download",
+                Font = new Font("Segoe UI", 8),
+                Location = new Point(265, 70), // Below Update button
+                Size = new Size(70, 25),
+                Visible = false // Hidden by default
+            };
+            btnDownload.Click += (s, e) => DownloadClicked?.Invoke(this);
+
             this.Controls.Add(lblTitle);
             this.Controls.Add(lblArtist);
             this.Controls.Add(lblDuration);
             this.Controls.Add(lblDescription);
             this.Controls.Add(lblDescriptionValue);
             this.Controls.Add(btnUpdateDes);
+            this.Controls.Add(btnDownload);
             this.Controls.Add(lblFeat);
             this.Controls.Add(lblYear);
             this.Controls.Add(lblFileName);
             this.Controls.Add(lblFileSize);
+        }
+
+        public void SetDownloadVisible(bool visible)
+        {
+            btnDownload.Visible = visible;
+            btnUpdateDes.Visible = !visible; // Assume mutual exclusivity for now
         }
 
 
