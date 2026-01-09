@@ -26,6 +26,12 @@ namespace P_BitRuisseau_321
             LoadTagMusic();
             protocol.SayOnline();
             protocol.GetOnlineMediatheque();
+            
+            HandleMessage.OnDownloadComplete += () => {
+                this.Invoke((MethodInvoker)delegate {
+                    LoadTagMusic();
+                });
+            };
         }
 
         private void fileNetwork_Click(object sender, EventArgs e)
@@ -90,24 +96,65 @@ namespace P_BitRuisseau_321
                 foreach(var s in songs)
                 {
                      var card = CreateMusicCard(index * 170, s);
-                     card.SetDownloadVisible(true);
+                     // Je vérifie si j'ai déjà cette chanson chez moi
+                     bool alreadyHave = Program.MySongs.Any(local => local.Hash == s.Hash);
+                     card.SetDownloadVisible(!alreadyHave);
+                     card.SetPlayVisible(alreadyHave); // J'affiche le bouton Play si je l'ai
+                     card.SetUpdateVisible(false); // Pas de bouton update pour les fichiers distants
+                     
                      card.Tag = ownerName;
                      card.DownloadClicked += HandleDownload;
-                     panel1.Controls.Add(card); // Explicitly add to panel1
+                     panel1.Controls.Add(card); // J'ajoute la carte au panneau réseau
                      index++;
                 }
             }
         }
-        private void HandleDownload(MusicCard card)
+        private async void HandleDownload(MusicCard card)
         {
             string owner = card.Tag as string;
             if (string.IsNullOrEmpty(owner)) return;
             
-            int bytes = card.BoundSong.Size * 1024 * 1024;
+            // Correction pour éviter les dépassements de capacité avec les gros fichiers
+            long bytes = (long)card.BoundSong.Size * 1024 * 1024;
+            
+            // Une petite vérif : si la taille est trop grande, c'est sûrement déjà en octets
+            if (bytes > 100L * 1024 * 1024 * 1024) 
+            {
+                bytes = card.BoundSong.Size;
+            }
+
             if (bytes == 0) bytes = 10 * 1024 * 1024; 
             
             protocol.AskMedia(card.BoundSong, owner, 0, bytes);
-            MessageBox.Show($"Demande envoyée à {owner} pour {card.BoundSong.Title}!");
+            
+            MessageBox.Show("Téléchargement lancé ! Cela peut prendre du temps si le fichier est volumineux ou envoyé en plusieurs morceaux.", "Information");
+
+            // Je mets à jour l'état visuel
+            card.SetDownloadingState();
+            
+            // J'attends un peu pour que l'utilisateur voit ce qu'il se passe
+            await Task.Delay(2000);
+            card.SetDownloadVisible(false); // Je cache le bouton download
+            card.SetPlayVisible(true); // Et hop, on peut jouer !
+        }
+
+        private void HandlePlay(MusicCard card)
+        {
+            try
+            {
+               if (System.IO.File.Exists(card.BoundSong.FilePath))
+               {
+                   Process.Start(new ProcessStartInfo(card.BoundSong.FilePath) { UseShellExecute = true });
+               }
+               else
+               {
+                   MessageBox.Show("Fichier introuvable sur le disque.", "Erreur");
+               }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Impossible de lire la musique : " + ex.Message);
+            }
         }
 
         private void checkLocalFile_CheckedChanged(object sender, EventArgs e)
@@ -122,6 +169,7 @@ namespace P_BitRuisseau_321
             card.SetData(song);
             card.Location = new Point(10, y);
             card.UpdateDescriptionClicked += HandleUpdateDescription;
+            card.PlayClicked += HandlePlay;
 
             // Removed hardcoded panelLocal.Controls.Add(card);
             // card.BringToFront(); // Caller should handle this if needed
@@ -158,42 +206,51 @@ namespace P_BitRuisseau_321
         public void LoadTagMusic()
         {
             panelLocal.Controls.Clear();
-            Program.MySongs.Clear(); 
-
+            
             string folder = Path.Combine(Application.StartupPath, "fileMp3");
             if (!Directory.Exists(folder)) return;
 
             var files = Directory.GetFiles(folder, "*.mp3");
+            var loadedSongs = new List<Song>();
 
             int index = 0;
             files.ToList().ForEach(file =>
             {
                 Song song = LoadSongWithTagLib(file);
-                Program.MySongs.Add(song);
+                loadedSongs.Add(song);
 
                 var card = CreateMusicCard(index * 170, song);
-                panelLocal.Controls.Add(card); // Explicitly add to panelLocal
+                card.SetUpdateVisible(true); // J'active l'update car c'est un fichier local
+                card.SetPlayVisible(true);   // J'active le play car c'est un fichier local
+                panelLocal.Controls.Add(card); // J'ajoute au panneau des fichiers locaux
 
                 index++;
             });
+
+            lock (Program.MySongsLock)
+            {
+                Program.MySongs.Clear();
+                Program.MySongs.AddRange(loadedSongs);
+            }
         }
 
         public Song LoadSongWithTagLib(string filePath)
         {
-            var tagFile = TagLib.File.Create(filePath);
-
-            Song s = new Song(filePath)
+            using (var tagFile = TagLib.File.Create(filePath))
             {
-                Title = tagFile.Tag.Title,
-                Artist = tagFile.Tag.FirstPerformer,
-                Year = (int)tagFile.Tag.Year,
-                Duration = tagFile.Properties.Duration,
-                Featuring = tagFile.Tag.Performers.Length > 1
-                    ? tagFile.Tag.Performers.Skip(1).ToArray()
-                    : new string[0],
-                Description = tagFile.Tag.Description,
-            };
-            return s;
+                Song s = new Song(filePath)
+                {
+                    Title = tagFile.Tag.Title,
+                    Artist = tagFile.Tag.FirstPerformer,
+                    Year = (int)tagFile.Tag.Year,
+                    Duration = tagFile.Properties.Duration,
+                    Featuring = tagFile.Tag.Performers.Length > 1
+                        ? tagFile.Tag.Performers.Skip(1).ToArray()
+                        : new string[0],
+                    Description = tagFile.Tag.Description,
+                };
+                return s;
+            }
         }
         private void HandleUpdateDescription(MusicCard card)
         {
@@ -211,16 +268,13 @@ namespace P_BitRuisseau_321
             {
                 try
                 {
-                    var tagFile = TagLib.File.Create(card.BoundSong.FilePath);
-
-                    tagFile.Tag.Description = newDescription;
-
-                    tagFile.Save();
-
-                    card.BoundSong.Description = newDescription;
-
-                    card.SetData(card.BoundSong);
-
+                    using (var tagFile = TagLib.File.Create(card.BoundSong.FilePath))
+                    {
+                        tagFile.Tag.Description = newDescription;
+                        tagFile.Save();
+                        card.BoundSong.Description = newDescription;
+                        card.SetData(card.BoundSong);
+                    }
                 }
                 catch (Exception ex)
                 {

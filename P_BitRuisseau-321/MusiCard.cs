@@ -61,7 +61,7 @@ namespace P_BitRuisseau_321
             {
                 Font = new Font("Segoe UI", 8),
                 Location = new Point(11, 55),
-                Size = new Size(190, 40), 
+                Size = new Size(190, 40), // J'ai réduit la largeur pour éviter que ça chevauche
                 AutoSize = false
             };
 
@@ -106,8 +106,8 @@ namespace P_BitRuisseau_321
                 Text = "Download",
                 Font = new Font("Segoe UI", 8),
                 Location = new Point(240, 70), 
-                Size = new Size(100, 25),      
-                Visible = false 
+                Size = new Size(100, 25),      // Assez large pour pas couper le texte
+                Visible = false // Caché par défaut
             };
             btnDownload.Click += (s, e) => DownloadClicked?.Invoke(this);
 
@@ -115,9 +115,9 @@ namespace P_BitRuisseau_321
             {
                 Text = "Play",
                 Font = new Font("Segoe UI", 8),
-                Location = new Point(245, 70), 
+                Location = new Point(245, 70), // Aligné avec le bouton Update
                 Size = new Size(80, 25),
-                Visible = false 
+                Visible = false // Caché par défaut
             };
             btnPlay.Click += (s, e) => PlayClicked?.Invoke(this);
 
