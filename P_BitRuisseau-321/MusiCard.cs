@@ -17,9 +17,11 @@ namespace P_BitRuisseau_321
         private Label lblFileSize;
         private Button btnUpdateDes;
         private Button btnDownload;
+        private Button btnPlay;
         public Song BoundSong { get; private set; }
         public event Action<MusicCard> UpdateDescriptionClicked;
         public event Action<MusicCard> DownloadClicked;
+        public event Action<MusicCard> PlayClicked;
         public MusicCard()
         {
             this.Size = new Size(360, 150);
@@ -59,7 +61,7 @@ namespace P_BitRuisseau_321
             {
                 Font = new Font("Segoe UI", 8),
                 Location = new Point(11, 55),
-                Size = new Size(240, 40),
+                Size = new Size(190, 40), 
                 AutoSize = false
             };
 
@@ -67,8 +69,8 @@ namespace P_BitRuisseau_321
             {
                 Text = "Update",
                 Font = new Font("Segoe UI", 8),
-                Location = new Point(265, 40),
-                Size = new Size(70, 25)
+                Location = new Point(245, 40),
+                Size = new Size(80, 25),
             };
             btnUpdateDes.Click += BtnUpdateDes_Click;
             lblFeat = new Label()
@@ -103,11 +105,21 @@ namespace P_BitRuisseau_321
             {
                 Text = "Download",
                 Font = new Font("Segoe UI", 8),
-                Location = new Point(265, 70), // Below Update button
-                Size = new Size(70, 25),
-                Visible = false // Hidden by default
+                Location = new Point(240, 70), 
+                Size = new Size(100, 25),      
+                Visible = false 
             };
             btnDownload.Click += (s, e) => DownloadClicked?.Invoke(this);
+
+            btnPlay = new Button()
+            {
+                Text = "Play",
+                Font = new Font("Segoe UI", 8),
+                Location = new Point(245, 70), 
+                Size = new Size(80, 25),
+                Visible = false 
+            };
+            btnPlay.Click += (s, e) => PlayClicked?.Invoke(this);
 
             this.Controls.Add(lblTitle);
             this.Controls.Add(lblArtist);
@@ -116,6 +128,7 @@ namespace P_BitRuisseau_321
             this.Controls.Add(lblDescriptionValue);
             this.Controls.Add(btnUpdateDes);
             this.Controls.Add(btnDownload);
+            this.Controls.Add(btnPlay);
             this.Controls.Add(lblFeat);
             this.Controls.Add(lblYear);
             this.Controls.Add(lblFileName);
@@ -125,7 +138,22 @@ namespace P_BitRuisseau_321
         public void SetDownloadVisible(bool visible)
         {
             btnDownload.Visible = visible;
-            btnUpdateDes.Visible = !visible; // Assume mutual exclusivity for now
+        }
+
+        public void SetUpdateVisible(bool visible)
+        {
+            btnUpdateDes.Visible = visible;
+        }
+
+        public void SetPlayVisible(bool visible)
+        {
+            btnPlay.Visible = visible;
+        }
+
+        public void SetDownloadingState()
+        {
+             btnDownload.Text = "Downloading...";
+             btnDownload.Enabled = false;
         }
 
 
@@ -143,7 +171,7 @@ namespace P_BitRuisseau_321
             lblFeat.Text = song.Featuring.Length > 0 ? $"featuring: {string.Join(", ", song.Featuring)}" : "featuring: Aucun";
             lblYear.Text = $"Année : {song.Year}";
             lblFileName.Text = song.FileName;
-            lblFileSize.Text = song.Size + "Mo";
+            lblFileSize.Text = (song.Size / 1024f / 1024f).ToString("0.00") + " Mo";
         }
     }
 }
