@@ -114,18 +114,11 @@ namespace P_BitRuisseau_321
             string owner = card.Tag as string;
             if (string.IsNullOrEmpty(owner)) return;
             
-            // Correction pour éviter les dépassements de capacité avec les gros fichiers
-            long bytes = (long)card.BoundSong.Size * 1024 * 1024;
-            
-            // Une petite vérif : si la taille est trop grande, c'est sûrement déjà en octets
-            if (bytes > 100L * 1024 * 1024 * 1024) 
-            {
-                bytes = card.BoundSong.Size;
-            }
-
-            if (bytes == 0) bytes = 10 * 1024 * 1024; 
-            
-            protocol.AskMedia(card.BoundSong, owner, 0, bytes);
+            // Correction de la logique de téléchargement :
+            // Au lieu de deviner la taille ou de faire des calculs hasardeux avec des unités mixtes (Mo vs Octets),
+            // on demande explicitement tout le fichier en passant 0 comme taille.
+            // Le protocole (MqttService) est conçu pour comprendre que start=0 et end=0 signifie "tout le fichier".
+            protocol.AskMedia(card.BoundSong, owner, 0, 0);
             
             MessageBox.Show("Téléchargement lancé ! Cela peut prendre du temps si le fichier est volumineux ou envoyé en plusieurs morceaux.", "Information");
 

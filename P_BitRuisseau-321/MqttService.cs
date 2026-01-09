@@ -157,7 +157,10 @@ namespace BitRuisseau
                         if (endByte == 0 && startByte == 0) endByte = fileSize - 1;
                         if (endByte >= fileSize) endByte = fileSize - 1;
                         
-                        const int CHUNK_SIZE = 256 * 1024; // 256 Ko
+                        // Le 'Client' veut tout envoyer d'un coup.
+                        // Je mets une taille de morceau énorme (100 Mo) pour être sûr que ça part en une seule fois
+                        // pour la plupart des musiques.
+                        const int CHUNK_SIZE = 100 * 1024 * 1024; // 100 Mo
                         
                         using (var fs = new FileStream(localSong.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                         {

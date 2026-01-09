@@ -35,7 +35,7 @@ namespace BitRuisseau
         /// <summary>
         /// The song file size in bytes
         /// </summary>
-        public int Size { get; set; }
+        public long Size { get; set; }
 
         /// <summary>
         /// The song featuring artists
