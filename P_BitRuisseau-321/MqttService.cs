@@ -132,7 +132,7 @@ namespace BitRuisseau
              SendMessage(message).FireAndForgetSafeAsync();
         }
 
-        public void AskMedia(ISong song, string name, int startByte, int endByte)
+        public void AskMedia(ISong song, string name, long startByte, long endByte)
         {
             var message = new Message
             {
@@ -146,30 +146,56 @@ namespace BitRuisseau
             SendMessage(message).FireAndForgetSafeAsync();
         }
 
-        public void SendMedia(ISong song, string name, int startByte, int endByte)
+        public async void SendMedia(ISong song, string name, long startByte, long endByte)
         {
              if (song is Song localSong)
             {
                 try {
-                    using (var fs = new FileStream(localSong.FilePath, FileMode.Open, FileAccess.Read))
-                    {
-                        int length = endByte - startByte + 1;
-                        byte[] buffer = new byte[length];
-                        fs.Seek(startByte, SeekOrigin.Begin);
-                        fs.Read(buffer, 0, length);
+                        long fileSize = new FileInfo(localSong.FilePath).Length;
                         
-                        var message = new Message
+                        // Respect de la demande de plage spécifique, sinon envoi du fichier complet
+                        if (endByte == 0 && startByte == 0) endByte = fileSize - 1;
+                        if (endByte >= fileSize) endByte = fileSize - 1;
+                        
+                        const int CHUNK_SIZE = 256 * 1024; // 256 Ko
+                        
+                        using (var fs = new FileStream(localSong.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                         {
-                            Sender = MyName,
-                            Recipient = name,
-                            Action = "sendMedia",
-                            Hash = song.Hash,
-                            StartByte = startByte,
-                            EndByte = endByte,
-                            SongData = Convert.ToBase64String(buffer)
-                        };
-                        SendMessage(message).FireAndForgetSafeAsync();
-                    }
+                           fs.Seek(startByte, SeekOrigin.Begin);
+                           
+                           long remaining = endByte - startByte + 1;
+                           long currentPos = startByte;
+                           
+                           while (remaining > 0)
+                           {
+                               int toRead = (int)Math.Min(remaining, CHUNK_SIZE);
+                               byte[] buffer = new byte[toRead];
+                               int read = fs.Read(buffer, 0, toRead);
+                               
+                               if (read == 0) break; // Fin du fichier
+                               
+                               bool isLast = (currentPos + read - 1) == endByte;
+                               
+                               var message = new Message
+                               {
+                                   Sender = MyName,
+                                   Recipient = name,
+                                   Action = "sendMedia",
+                                   Hash = song.Hash,
+                                   StartByte = currentPos,
+                                   EndByte = currentPos + read - 1,
+                                   SongData = Convert.ToBase64String(buffer, 0, read),
+                                   IsLastChunk = isLast
+                               };
+
+                               // Attente pour éviter la saturation du réseau
+                               await SendMessage(message);
+                               await Task.Delay(50);
+                               
+                               currentPos += read;
+                               remaining -= read;
+                           }
+                        }
                 } catch(Exception ex) {
                     Trace.WriteLine("Error sending media: " + ex.Message);
                 }

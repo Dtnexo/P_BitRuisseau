@@ -39,7 +39,7 @@ namespace BitRuisseau
         /// <param name="startByte">The first byte you need</param>
         /// <param name="endByte">The last byte you need</param>
         /// <param name="name">The name/ip of the mediatheque</param>
-        public void AskMedia(ISong song, string name, int startByte, int endByte);
+        public void AskMedia(ISong song, string name, long startByte, long endByte);
 
         /// <summary>
         /// Send the media to someone
@@ -48,6 +48,6 @@ namespace BitRuisseau
         /// <param name="startByte">The first byte they need</param>
         /// <param name="endByte">The last byte they need</param>
         /// <param name="name">The name/ip of the mediatheque</param>
-        public void SendMedia(ISong song, string name, int startByte, int endByte);
+        public void SendMedia(ISong song, string name, long startByte, long endByte);
     }
 }

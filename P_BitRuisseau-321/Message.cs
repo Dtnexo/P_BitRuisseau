@@ -28,12 +28,12 @@ namespace BitRuisseau
         /// <summary>
         /// The starting byte
         /// </summary>
-        public int ?StartByte { get; set; }
+        public long ?StartByte { get; set; }
 
         /// <summary>
         /// The ending Byte
         /// </summary>
-        public int ?EndByte { get; set; }
+        public long ?EndByte { get; set; }
 
         /// <summary>
         /// The list of song metadata
@@ -49,5 +49,7 @@ namespace BitRuisseau
         /// The hash of the file asked/sent
         /// </summary>
         public string ?Hash { get; set; }
+
+        public bool? IsLastChunk { get; set; }
     }
 }
